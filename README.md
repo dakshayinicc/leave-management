@@ -83,4 +83,14 @@ The test suite covers invalid dates, insufficient balance, and overlapping appro
 
 ## Screenshots
 
-The browser UI includes an employee leave dashboard, balance tracker, leave history, status filter, and manager/admin approval actions. Add exported screenshots to `docs/screenshots/` before submission.
+### Login screen
+![Login screen](docs/screenshots/login.png)
+
+### Employee dashboard
+![Employee dashboard](docs/screenshots/employee-dashboard.png)
+
+### Admin leave requests
+![Admin leave requests](docs/screenshots/admin-leave-requests.png)
+
+### Docker containers
+![Docker containers](docs/screenshots/docker-running.png)
