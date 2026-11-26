@@ -167,7 +167,6 @@ button {
             <h2 id="welcomeText">Welcome</h2>
             <p id="roleText"></p>
         </div>
-        <button id="logoutButton" class="secondary">Logout</button>
     </div>
 
     <section id="adminOverview" class="admin-overview module-page" data-page="home" hidden>
@@ -363,8 +362,9 @@ async function loadDashboard() {
     document.querySelector(".app-sidebar").style.display = "flex";
     document.querySelector("header").style.display = "flex";
 
-    $("welcomeText").textContent =
-        "Welcome, " + (currentUser.employee?.name || currentUser.email);
+    const displayName = currentUser.employee?.name ||
+        (currentUser.role === "ADMIN" ? "Admin" : currentUser.role === "MANAGER" ? "Manager" : "Employee");
+    $("welcomeText").textContent = "Welcome, " + displayName;
 
     $("roleText").textContent = currentUser.role;
     $("trackerType").textContent = "Your leave balances";
@@ -683,8 +683,6 @@ $("statusFilter").addEventListener("change", () => {
         showMessage("requestMessage", error.message)
     );
 });
-
-$("logoutButton").addEventListener("click", logout);
 
 if (token) {
     loadDashboard().catch(error => {
