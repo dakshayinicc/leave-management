@@ -2,6 +2,11 @@
 
 A Flask/MySQL leave-management application with a responsive HTML/CSS frontend.
 
+Employees enter a joining date during onboarding. The first six completed months
+are probation, with no automatic leave balance. From month seven, the system
+accrues 1 casual leave and 0.5 sick leave per completed month. Comp-off is a
+typed leave balance that an admin or manager can grant manually.
+
 ## Run with Docker
 
 From the repository root:
@@ -39,6 +44,7 @@ All protected endpoints use `Authorization: Bearer <access_token>`.
 | GET | `/leaves?status=PENDING` | List/filter leave requests |
 | PUT | `/leaves/{id}/approve` | Approve and deduct balance |
 | PUT | `/leaves/{id}/reject` | Reject without changing balance |
+| POST | `/employees/{id}/comp-off` | Grant comp-off leave |
 
 Example login:
 
@@ -56,6 +62,8 @@ Example leave request:
 POST /leaves
 {
   "employee_id": 1,
+  "leave_type": "CASUAL",
+  "duration": 1,
   "from_date": "2026-06-18",
   "to_date": "2026-06-20",
   "reason": "Personal work"

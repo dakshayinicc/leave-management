@@ -34,7 +34,8 @@ def make_employee(balance=5):
         name="Test Employee",
         email=f"employee-{balance}@example.com",
         department="IT",
-        leave_balance=balance,
+        joining_date=date.today(),
+        casual_balance=balance,
     )
     db.session.add(employee)
     db.session.commit()
@@ -59,6 +60,7 @@ def test_rejects_insufficient_balance(app_context):
         apply_leave({
             "from_date": "2026-06-18",
             "to_date": "2026-06-20",
+            "duration": 3,
             "reason": "Personal work",
         }, employee.id)
 

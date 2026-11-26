@@ -20,6 +20,8 @@ def leave_response(leave):
         "from_date": leave.from_date.isoformat(),
         "to_date": leave.to_date.isoformat(),
         "reason": leave.reason,
+        "leave_type": leave.leave_type,
+        "duration": float(leave.duration),
         "status": leave.status,
     }
 

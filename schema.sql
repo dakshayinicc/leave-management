@@ -6,7 +6,11 @@ CREATE TABLE IF NOT EXISTS employee (
     name VARCHAR(120) NOT NULL,
     email VARCHAR(150) NOT NULL UNIQUE,
     department VARCHAR(100) NOT NULL,
-    leave_balance INT NOT NULL DEFAULT 12
+    casual_balance DECIMAL(6,1) NOT NULL DEFAULT 0.0,
+    sick_balance DECIMAL(6,1) NOT NULL DEFAULT 0.0,
+    comp_off_balance DECIMAL(6,1) NOT NULL DEFAULT 0.0,
+    joining_date DATE NOT NULL,
+    accrued_months INT NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS leave_request (
@@ -15,10 +19,13 @@ CREATE TABLE IF NOT EXISTS leave_request (
     from_date DATE NOT NULL,
     to_date DATE NOT NULL,
     reason VARCHAR(500) NOT NULL,
+    leave_type ENUM('CASUAL', 'SICK', 'COMP_OFF') NOT NULL DEFAULT 'CASUAL',
+    duration DECIMAL(4,1) NOT NULL DEFAULT 1.0,
     status ENUM('PENDING', 'APPROVED', 'REJECTED') NOT NULL DEFAULT 'PENDING',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_leave_employee FOREIGN KEY (employee_id) REFERENCES employee(id),
-    CONSTRAINT check_leave_dates CHECK (to_date >= from_date)
+    CONSTRAINT check_leave_dates CHECK (to_date >= from_date),
+    CONSTRAINT check_leave_duration CHECK (duration > 0)
 );
 
 CREATE TABLE IF NOT EXISTS users (

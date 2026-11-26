@@ -193,6 +193,14 @@ button {
         <form id="leaveForm">
             <label id="employeeSelectLabel" for="employeeSelect">Employee</label>
             <select id="employeeSelect"><option value="">Select employee</option></select>
+            <label>Leave Type</label>
+            <select id="leaveType" required>
+                <option value="CASUAL">Casual Leave</option>
+                <option value="SICK">Sick Leave</option>
+                <option value="COMP_OFF">Comp Off</option>
+            </select>
+            <label>Duration (days)</label>
+            <input type="number" id="leaveDuration" min="0.5" step="0.5" value="1" required>
             <label>From Date</label>
             <input type="date" id="fromDate" required>
 
@@ -222,9 +230,8 @@ button {
             <input type="password" id="employeePassword"
                    minlength="12" required>
 
-            <label>Leave Balance</label>
-            <input type="number" id="employeeBalance"
-                   min="0" max="365" value="12" required>
+            <label>Joining Date</label>
+            <input type="date" id="employeeJoiningDate" required>
 
             <button type="submit">Add Employee</button>
         </form>
@@ -334,9 +341,10 @@ async function loadDashboard() {
     $("employeeSelect").hidden = employee;
 
     if (employee) {
-        $("balance").textContent =
-            currentUser.employee.leave_balance + " days";
-        $("trackerBalance").textContent = currentUser.employee.leave_balance + " days";
+        const balances = currentUser.employee;
+        const totalBalance = Number(balances.casual_balance) + Number(balances.sick_balance) + Number(balances.comp_off_balance);
+        $("balance").textContent = totalBalance + " days";
+        $("trackerBalance").textContent = `${totalBalance} days (${balances.casual_balance} casual / ${balances.sick_balance} sick)`;
     }
 
     await loadLeaves();
@@ -363,16 +371,14 @@ async function loadLeaves() {
         const history = $("historyList");
         history.replaceChildren();
         leaves.forEach(leave => {
-            const start = new Date(leave.from_date);
-            const end = new Date(leave.to_date);
-            const days = Math.max(1, Math.round((end - start) / 86400000) + 1);
+            const days = leave.duration;
             const row = document.createElement("div");
             row.className = "history-row";
             row.innerHTML = `<span><strong>Annual Leave</strong></span><span>${leave.from_date} – ${leave.to_date}</span><span>${days}</span><span>${leave.created_at || "Today"}</span><span class="status-badge ${leave.status}">${leave.status}</span><span class="history-view">View</span>`;
             history.append(row);
         });
         const used = leaves.filter(x => x.status === "APPROVED").reduce((sum, leave) => {
-            const days = Math.max(1, Math.round((new Date(leave.to_date) - new Date(leave.from_date)) / 86400000) + 1);
+            const days = Number(leave.duration);
             return sum + days;
         }, 0);
         $("trackerDay").textContent = used;
@@ -388,6 +394,7 @@ async function loadLeaves() {
         details.textContent =
             `Employee ID: ${leave.employee_id} | ` +
             `${leave.from_date} to ${leave.to_date} | ` +
+            `${leave.leave_type} (${leave.duration} day(s)) | ` +
             `Reason: ${leave.reason}`;
 
         const statusText = document.createElement("p");
@@ -453,7 +460,7 @@ async function loadEmployees() {
         const details = document.createElement("p");
         details.textContent =
             `${employee.name} | ${employee.email} | ` +
-            `${employee.department} | Balance: ${employee.leave_balance} days`;
+            `${employee.department} | Casual: ${employee.casual_balance} | Sick: ${employee.sick_balance} | Comp off: ${employee.comp_off_balance}`;
 
         card.append(details);
         container.append(card);
@@ -487,6 +494,8 @@ $("leaveForm").addEventListener("submit", async event => {
         }
         await api("/leaves", "POST", {
             ...(currentUser.role === "EMPLOYEE" ? {} : { employee_id: Number($("employeeSelect").value) }),
+            leave_type: $("leaveType").value,
+            duration: Number($("leaveDuration").value),
             from_date: $("fromDate").value,
             to_date: $("toDate").value,
             reason: $("reason").value.trim()
@@ -509,7 +518,7 @@ $("employeeForm").addEventListener("submit", async event => {
             email: $("employeeEmail").value.trim(),
             department: $("employeeDepartment").value.trim(),
             password: $("employeePassword").value,
-            leave_balance: Number($("employeeBalance").value)
+            joining_date: $("employeeJoiningDate").value
         });
 
         $("employeeForm").reset();
@@ -524,12 +533,6 @@ $("statusFilter").addEventListener("change", () => {
     loadLeaves().catch(error =>
         showMessage("requestMessage", error.message)
     );
-});
-
-$("employeeBalance").addEventListener("input", event => {
-    const field = event.target;
-    if (field.value.length > 3) field.value = field.value.slice(0, 3);
-    if (Number(field.value) > 365) field.value = 365;
 });
 
 $("logoutButton").addEventListener("click", logout);

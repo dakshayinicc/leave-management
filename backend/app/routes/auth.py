@@ -8,6 +8,7 @@ from flask_jwt_extended import (
 from werkzeug.security import check_password_hash
 
 from ..models import User
+from app.services.leave_service import accrue_leave
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -54,6 +55,9 @@ def current_user():
     if not user or not user.is_active:
         return jsonify({"error": "Unauthorized"}), 401
 
+    if user.employee:
+        accrue_leave(user.employee)
+
     result = {
         "id": user.id,
         "email": user.email,
@@ -64,7 +68,10 @@ def current_user():
         result["employee"] = {
             "id": user.employee.id,
             "name": user.employee.name,
-            "leave_balance": user.employee.leave_balance,
+            "casual_balance": float(user.employee.casual_balance),
+            "sick_balance": float(user.employee.sick_balance),
+            "comp_off_balance": float(user.employee.comp_off_balance),
+            "joining_date": user.employee.joining_date.isoformat(),
         }
 
     return jsonify(result), 200

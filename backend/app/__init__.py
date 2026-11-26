@@ -6,13 +6,50 @@ from dotenv import load_dotenv
 from flask import Flask, jsonify, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
-from sqlalchemy import URL
+from sqlalchemy import URL, inspect, text
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 load_dotenv(BASE_DIR / ".env")
 
 db = SQLAlchemy()
 jwt = JWTManager()
+
+
+def ensure_leave_schema():
+    """Add the typed-leave columns when upgrading an older database."""
+    inspector = inspect(db.engine)
+    employee_columns = {column["name"] for column in inspector.get_columns("employee")}
+    leave_columns = {column["name"] for column in inspector.get_columns("leave_request")}
+
+    with db.engine.begin() as connection:
+        additions = {
+            "casual_balance": "DECIMAL(6,1) NOT NULL DEFAULT 0.0",
+            "sick_balance": "DECIMAL(6,1) NOT NULL DEFAULT 0.0",
+            "comp_off_balance": "DECIMAL(6,1) NOT NULL DEFAULT 0.0",
+            "joining_date": "DATE NULL",
+            "accrued_months": "INT NOT NULL DEFAULT 0",
+        }
+        for name, definition in additions.items():
+            if name not in employee_columns:
+                connection.execute(text(f"ALTER TABLE employee ADD COLUMN {name} {definition}"))
+
+        connection.execute(text(
+            "UPDATE employee SET joining_date = COALESCE(joining_date, CURRENT_DATE)"
+        ))
+        if "leave_balance" in employee_columns:
+            connection.execute(text(
+                "UPDATE employee SET casual_balance = "
+                "CASE WHEN casual_balance = 0 THEN COALESCE(leave_balance, 0) "
+                "ELSE casual_balance END"
+            ))
+
+        leave_additions = {
+            "leave_type": "VARCHAR(20) NOT NULL DEFAULT 'CASUAL'",
+            "duration": "DECIMAL(4,1) NOT NULL DEFAULT 1.0",
+        }
+        for name, definition in leave_additions.items():
+            if name not in leave_columns:
+                connection.execute(text(f"ALTER TABLE leave_request ADD COLUMN {name} {definition}"))
 
 def create_app():
     app = Flask(__name__)
@@ -56,6 +93,7 @@ def create_app():
 
     with app.app_context():
         db.create_all()
+        ensure_leave_schema()
 
     # Register authentication routes
     from app.routes.auth import auth_bp

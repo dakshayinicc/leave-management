@@ -1,5 +1,6 @@
 
 from datetime import datetime
+from decimal import Decimal
 from . import db
 
 
@@ -10,7 +11,12 @@ class Employee(db.Model):
     name = db.Column(db.String(120), nullable=False)
     email = db.Column(db.String(150), unique=True, nullable=False)
     department = db.Column(db.String(100), nullable=False)
-    leave_balance = db.Column(db.Integer, nullable=False, default=12)
+    # Leave is tracked by type. Decimal values support half-day sick leave.
+    casual_balance = db.Column(db.Numeric(6, 1), nullable=False, default=Decimal("0.0"))
+    sick_balance = db.Column(db.Numeric(6, 1), nullable=False, default=Decimal("0.0"))
+    comp_off_balance = db.Column(db.Numeric(6, 1), nullable=False, default=Decimal("0.0"))
+    joining_date = db.Column(db.Date, nullable=False)
+    accrued_months = db.Column(db.Integer, nullable=False, default=0)
 
     leave_requests = db.relationship(
         "LeaveRequest",
@@ -40,6 +46,14 @@ class LeaveRequest(db.Model):
     to_date = db.Column(db.Date, nullable=False)
     reason = db.Column(db.String(500), nullable=False)
 
+    leave_type = db.Column(
+        db.String(20),
+        nullable=False,
+        default="CASUAL"
+    )
+
+    duration = db.Column(db.Numeric(4, 1), nullable=False, default=Decimal("1.0"))
+
     status = db.Column(
         db.String(20),
         nullable=False,
@@ -61,6 +75,14 @@ class LeaveRequest(db.Model):
         db.CheckConstraint(
             "status IN ('PENDING', 'APPROVED', 'REJECTED')",
             name="check_leave_status"
+        ),
+        db.CheckConstraint(
+            "leave_type IN ('CASUAL', 'SICK', 'COMP_OFF')",
+            name="check_leave_type"
+        ),
+        db.CheckConstraint(
+            "duration > 0",
+            name="check_leave_duration"
         ),
         db.CheckConstraint(
             "to_date >= from_date",

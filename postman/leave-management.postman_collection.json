@@ -52,6 +52,15 @@
     {
       "name": "Reject leave",
       "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/leaves/{{leaveId}}/reject" }
+    },
+    {
+      "name": "Grant comp-off",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"amount\": 1\n}" },
+        "url": "{{baseUrl}}/employees/{{employeeId}}/comp-off"
+      }
     }
   ]
 }
