@@ -16,15 +16,26 @@ def create_employee(data):
     department = data.get("department", "").strip()
     password = data.get("password", "")
     joining_date_text = data.get("joining_date", "")
+    role = str(data.get("role", "EMPLOYEE")).upper()
 
-    if not name or not email or not department or not password:
-        raise ValueError("All employee fields are required.")
+    missing_fields = [field for field, value in {
+        "name": name,
+        "email": email,
+        "department": department,
+        "password": password,
+        "joining_date": joining_date_text,
+    }.items() if not value]
+    if missing_fields:
+        raise ValueError(f"Required fields: {', '.join(missing_fields)}.")
 
     if "@" not in email:
-        raise ValueError("Enter a valid email address.")
+        raise ValueError("email must be a valid email address.")
 
     if len(password) < 12:
         raise ValueError("Password must contain at least 12 characters.")
+
+    if role not in ("EMPLOYEE", "MANAGER"):
+        raise ValueError("role must be EMPLOYEE or MANAGER.")
 
     if get_user_by_email(email):
         raise ValueError("An account with this email already exists.")
@@ -32,10 +43,10 @@ def create_employee(data):
     try:
         joining_date = date.fromisoformat(joining_date_text)
     except (ValueError, TypeError):
-        raise ValueError("Joining date must use YYYY-MM-DD format.")
+        raise ValueError("joining_date must use YYYY-MM-DD format.")
 
     if joining_date > date.today():
-        raise ValueError("Joining date cannot be in the future.")
+        raise ValueError("joining_date cannot be in the future.")
 
     employee = Employee(
         name=name,
@@ -47,7 +58,7 @@ def create_employee(data):
     user = User(
         email=email,
         password_hash=generate_password_hash(password),
-        role="EMPLOYEE",
+        role=role,
         is_active=True,
         employee=employee,
     )

@@ -24,7 +24,7 @@
       "request": {
         "method": "POST",
         "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
-        "body": { "mode": "raw", "raw": "{\n  \"name\": \"Test Employee\",\n  \"email\": \"employee@example.com\",\n  \"department\": \"IT\",\n  \"password\": \"EmployeePassword123\",\n  \"leave_balance\": 12\n}" },
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"Test Employee\",\n  \"email\": \"employee@example.com\",\n  \"department\": \"IT\",\n  \"role\": \"EMPLOYEE\",\n  \"joining_date\": \"2026-11-26\",\n  \"password\": \"EmployeePassword123\"\n}" },
         "url": "{{baseUrl}}/employees"
       }
     },
@@ -37,7 +37,7 @@
       "request": {
         "method": "POST",
         "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
-        "body": { "mode": "raw", "raw": "{\n  \"employee_id\": {{employeeId}},\n  \"from_date\": \"2026-06-18\",\n  \"to_date\": \"2026-06-20\",\n  \"reason\": \"Personal work\"\n}" },
+        "body": { "mode": "raw", "raw": "{\n  \"leave_type\": \"UNPAID\",\n  \"duration\": 1,\n  \"from_date\": \"2026-12-18\",\n  \"to_date\": \"2026-12-18\",\n  \"reason\": \"Personal work\"\n}" },
         "url": "{{baseUrl}}/leaves"
       }
     },

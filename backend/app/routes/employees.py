@@ -24,6 +24,7 @@ def add_employee():
                 "sick_balance": float(employee.sick_balance),
                 "comp_off_balance": float(employee.comp_off_balance),
                 "joining_date": employee.joining_date.isoformat(),
+                "role": employee.user.role if employee.user else "EMPLOYEE",
             }
         }), 201
 
@@ -32,7 +33,7 @@ def add_employee():
 
 
 @employees_bp.route("", methods=["GET"])
-@role_required("ADMIN", "MANAGER")
+@role_required("ADMIN")
 def get_employees():
     employees = list_employees()
 
@@ -46,18 +47,24 @@ def get_employees():
             "sick_balance": float(employee.sick_balance),
             "comp_off_balance": float(employee.comp_off_balance),
             "joining_date": employee.joining_date.isoformat(),
+            "role": employee.user.role if employee.user else "EMPLOYEE",
         }
         for employee in employees
     ]), 200
 
 
 @employees_bp.route("/<int:employee_id>/comp-off", methods=["POST"])
-@role_required("ADMIN", "MANAGER")
+@role_required("ADMIN")
 def add_comp_off(employee_id):
-    data = request.get_json(silent=True) or {}
-    employee = grant_comp_off(employee_id, data.get("amount"))
-    return jsonify({
-        "message": "Comp-off leave added successfully",
-        "employee_id": employee.id,
-        "comp_off_balance": float(employee.comp_off_balance),
-    }), 200
+    try:
+        data = request.get_json(silent=True) or {}
+        employee = grant_comp_off(employee_id, data.get("amount"))
+        return jsonify({
+            "message": "Comp-off leave added successfully",
+            "employee_id": employee.id,
+            "comp_off_balance": float(employee.comp_off_balance),
+        }), 200
+    except ValueError as error:
+        return jsonify({"error": str(error)}), 400
+    except LookupError as error:
+        return jsonify({"error": str(error)}), 404

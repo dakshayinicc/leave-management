@@ -1,5 +1,6 @@
 import sys
 from datetime import date
+from decimal import Decimal
 from pathlib import Path
 
 import pytest
@@ -8,7 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app import db
 from app.models import Employee
-from app.services.leave_service import apply_leave, process_leave
+from app.services.leave_service import apply_leave, process_leave, accrue_leave
 
 
 @pytest.fixture
@@ -45,7 +46,7 @@ def make_employee(balance=5):
 def test_rejects_invalid_dates(app_context):
     employee = make_employee()
 
-    with pytest.raises(ValueError, match="before start"):
+    with pytest.raises(ValueError, match="to_date"):
         apply_leave({
             "from_date": "2026-06-20",
             "to_date": "2026-06-18",
@@ -74,9 +75,33 @@ def test_rejects_overlap_with_approved_leave(app_context):
     }, employee.id)
     process_leave(leave.id, "APPROVED")
 
-    with pytest.raises(ValueError, match="overlaps"):
+    with pytest.raises(RuntimeError, match="overlap"):
         apply_leave({
             "from_date": "2026-06-19",
             "to_date": "2026-06-21",
             "reason": "Second trip",
         }, employee.id)
+
+
+def test_probation_has_no_monthly_accrual(app_context):
+    employee = make_employee(balance=0)
+    employee.joining_date = date(2025, 1, 15)
+    employee.accrued_months = 0
+    db.session.commit()
+
+    accrue_leave(employee, today=date(2025, 7, 15))
+
+    assert employee.casual_balance == Decimal("0.0")
+    assert employee.sick_balance == Decimal("0.0")
+
+
+def test_monthly_accrual_starts_after_six_completed_months(app_context):
+    employee = make_employee(balance=0)
+    employee.joining_date = date(2025, 1, 15)
+    employee.accrued_months = 0
+    db.session.commit()
+
+    accrue_leave(employee, today=date(2025, 8, 15))
+
+    assert employee.casual_balance == Decimal("1.0")
+    assert employee.sick_balance == Decimal("0.5")

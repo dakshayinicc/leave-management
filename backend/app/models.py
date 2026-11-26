@@ -77,7 +77,7 @@ class LeaveRequest(db.Model):
             name="check_leave_status"
         ),
         db.CheckConstraint(
-            "leave_type IN ('CASUAL', 'SICK', 'COMP_OFF')",
+            "leave_type IN ('CASUAL', 'SICK', 'COMP_OFF', 'UNPAID')",
             name="check_leave_type"
         ),
         db.CheckConstraint(

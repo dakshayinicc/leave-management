@@ -5,8 +5,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Leave Management System</title>
-<link rel="stylesheet" href="/style.css">
-
 <style>
 * { box-sizing: border-box; }
 
@@ -132,17 +130,13 @@ button {
     <div class="sidebar-brand"><span class="sidebar-logo">L</span><span>Leave<span>Flow</span></span></div>
     <div class="sidebar-caption">WORKSPACE</div>
     <nav class="sidebar-nav">
-        <a href="#dashboard" class="sidebar-link active" data-section="dashboard"><span>▦</span> Dashboard</a>
-        <a href="#leaveList" class="sidebar-link" data-section="requestsPanel"><span>▤</span> Leave requests</a>
-        <a href="#applySection" class="sidebar-link" data-section="applySection"><span>＋</span> Apply leave</a>
-        <a href="#employeesSection" class="sidebar-link" data-section="employeesSection"><span>♙</span> Employees</a>
+        <a href="#dashboard" class="sidebar-link active" data-page="home"><span>▦</span> Dashboard</a>
+        <a href="#requests" class="sidebar-link" data-page="requests"><span>▤</span> Leave requests</a>
+        <a href="#apply" class="sidebar-link" data-page="apply" data-roles="EMPLOYEE,MANAGER"><span>＋</span> Apply leave</a>
+        <a href="#history" class="sidebar-link" data-page="history" data-roles="EMPLOYEE,MANAGER"><span>◷</span> Leave history</a>
+        <a href="#employees" class="sidebar-link" data-page="employees" data-roles="ADMIN"><span>♙</span> Employees</a>
     </nav>
-    <div class="sidebar-caption">ACCOUNT</div>
-    <nav class="sidebar-nav">
-        <a href="#" class="sidebar-link"><span>⚙</span> Settings</a>
-        <a href="#" class="sidebar-link"><span>?</span> Help center</a>
-    </nav>
-    <div class="sidebar-bottom"><div class="sidebar-tip"><strong>Need assistance?</strong><small>We’re here to help.</small></div><button id="sidebarLogout" class="sidebar-logout">↪ <span>Log out</span></button></div>
+    <div class="sidebar-bottom"><button id="sidebarLogout" class="sidebar-logout">↪ <span>Log out</span></button></div>
 </aside>
 
 <header>
@@ -168,7 +162,7 @@ button {
 
 <section id="dashboard" hidden>
 
-    <div class="welcome">
+    <div class="welcome module-page" data-page="home">
         <div>
             <h2 id="welcomeText">Welcome</h2>
             <p id="roleText"></p>
@@ -176,28 +170,36 @@ button {
         <button id="logoutButton" class="secondary">Logout</button>
     </div>
 
-    <div id="balanceCard" class="balance-card" hidden>
+    <section id="adminOverview" class="admin-overview module-page" data-page="home" hidden>
+        <div class="overview-heading"><div><h2>Admin overview</h2><p>Quick access to your team and leave approvals.</p></div></div>
+        <div class="overview-grid">
+            <article class="overview-tile"><span>Employees</span><strong id="adminEmployeeCount">0</strong><button type="button" data-open-page="employees">Manage employees</button></article>
+            <article class="overview-tile"><span>Pending requests</span><strong id="adminPendingCount">0</strong><button type="button" data-open-page="requests">Review requests</button></article>
+        </div>
+    </section>
+
+    <div id="balanceCard" class="balance-card module-page" data-page="home" hidden>
         <p>Available Leave Balance</p>
         <h2 id="balance">0 days</h2>
+        <p id="probationNotice" class="probation-notice"></p>
     </div>
 
-    <section id="employeeTracker" class="employee-tracker panel" hidden>
-        <div class="tracker-heading"><div><h2>Leave Tracker</h2><p id="trackerType">Annual Leave <span class="tracker-active">Active</span></p><small id="trackerDates">Your current leave overview</small></div><span class="tracker-menu">•••</span></div>
+    <section id="employeeTracker" class="employee-tracker panel module-page" data-page="home" hidden>
+        <div class="tracker-heading"><div><h2>Leave Tracker</h2><p id="trackerType">Your leave balances <span class="tracker-active">Active</span></p><small id="trackerDates">Your current leave overview</small></div><span class="tracker-menu">•••</span></div>
         <div class="tracker-ring"><div><strong id="trackerDay">0</strong><span id="trackerTotal">days used</span></div></div>
         <div class="tracker-return">Available balance: <strong id="trackerBalance">0 days</strong></div>
         <button class="tracker-button" id="trackerApplyButton">Apply for leave</button>
     </section>
 
-    <section id="applySection" class="panel" hidden>
+    <section id="applySection" class="panel module-page" data-page="apply" hidden>
         <h2>Apply for Leave</h2>
         <form id="leaveForm">
-            <label id="employeeSelectLabel" for="employeeSelect">Employee</label>
-            <select id="employeeSelect"><option value="">Select employee</option></select>
             <label>Leave Type</label>
             <select id="leaveType" required>
                 <option value="CASUAL">Casual Leave</option>
                 <option value="SICK">Sick Leave</option>
                 <option value="COMP_OFF">Comp Off</option>
+                <option value="UNPAID">Unpaid Leave</option>
             </select>
             <label>Duration (days)</label>
             <input type="number" id="leaveDuration" min="0.5" step="0.5" value="1" required>
@@ -212,9 +214,10 @@ button {
 
             <button type="submit">Submit Leave Request</button>
         </form>
+        <p id="applyMessage" class="message" role="status"></p>
     </section>
 
-    <section id="employeeSection" class="panel" hidden>
+    <section id="employeeSection" class="panel module-page" data-page="employees" hidden>
         <h2>Add Employee</h2>
         <form id="employeeForm">
             <label>Employee Name</label>
@@ -226,6 +229,9 @@ button {
             <label>Department</label>
             <input id="employeeDepartment" required>
 
+            <label>Account Role</label>
+            <select id="employeeRole"><option value="EMPLOYEE">Employee</option><option value="MANAGER">Manager / Team Lead</option></select>
+
             <label>Temporary Password (minimum 12 characters)</label>
             <input type="password" id="employeePassword"
                    minlength="12" required>
@@ -235,9 +241,10 @@ button {
 
             <button type="submit">Add Employee</button>
         </form>
+        <p id="employeeMessage" class="message" role="status"></p>
     </section>
 
-    <section id="requestsPanel" class="panel">
+    <section id="requestsPanel" class="panel module-page" data-page="requests" hidden>
         <div class="section-heading">
             <h2>Leave Requests</h2>
             <select id="statusFilter">
@@ -249,17 +256,23 @@ button {
         </div>
 
         <p id="requestMessage" class="message"></p>
-        <div id="leaveList"></div>
+        <div class="table-wrap"><table class="data-table"><thead><tr><th>EMPLOYEE</th><th>LEAVE TYPE</th><th>DATE RANGE</th><th>DURATION</th><th>REASON</th><th>STATUS</th><th id="requestActionHeading">ACTION</th></tr></thead><tbody id="leaveList"></tbody></table></div>
     </section>
 
-    <section id="employeeHistory" class="panel employee-history" hidden>
-        <div class="section-heading"><h2>Leave History</h2><div class="history-filters"><select><option>Year</option><option>2026</option></select><select><option>Type</option><option>All types</option></select><select><option>Status</option><option>All statuses</option></select></div></div>
-        <div class="history-table"><div class="history-row history-header"><span>TYPE</span><span>DATE RANGE</span><span>DAYS</span><span>SUBMITTED ON</span><span>STATUS</span><span>ACTION</span></div><div id="historyList"></div></div>
+    <section id="employeeHistory" class="panel employee-history module-page" data-page="history" hidden>
+        <div class="section-heading"><h2>My Leave History</h2></div>
+        <div class="table-wrap"><table class="data-table"><thead><tr><th>LEAVE TYPE</th><th>DATE RANGE</th><th>DURATION</th><th>SUBMITTED ON</th><th>STATUS</th></tr></thead><tbody id="historyList"></tbody></table></div>
     </section>
 
-    <section id="employeesSection" class="panel" hidden>
-        <h2>Employees</h2>
-        <div id="employeeList"></div>
+    <section id="employeesSection" class="panel module-page" data-page="employees" hidden>
+        <div class="section-heading"><div><h2>Employee directory</h2><p class="muted">Probation status and available leave by type.</p></div><button id="grantCompOffButton" type="button">＋ Grant comp-off</button></div>
+        <div class="table-wrap"><table class="data-table"><thead><tr><th>NAME</th><th>EMAIL</th><th>DEPARTMENT</th><th>ROLE</th><th>JOINING DATE</th><th>CASUAL</th><th>SICK</th><th>COMP-OFF</th></tr></thead><tbody id="employeeList"></tbody></table></div>
+        <form id="compOffForm" class="comp-off-form" hidden>
+            <label for="compOffEmployee">Employee</label><select id="compOffEmployee" required></select>
+            <label for="compOffAmount">Comp-off amount (days)</label><input id="compOffAmount" type="number" min="0.5" step="0.5" value="0.5" required>
+            <button type="submit">Add comp-off</button><button type="button" id="cancelCompOff">Cancel</button>
+            <p id="compOffMessage" class="message" role="status"></p>
+        </form>
     </section>
 
 </section>
@@ -268,6 +281,7 @@ button {
 <script>
 let token = sessionStorage.getItem("access_token");
 let currentUser = null;
+let activePage = "home";
 
 const $ = id => document.getElementById(id);
 
@@ -313,6 +327,33 @@ function logout() {
     document.querySelector("header").style.display = "none";
 }
 
+function profileRole() {
+    return ["EMPLOYEE", "MANAGER"].includes(currentUser?.role) && Boolean(currentUser?.employee);
+}
+
+function showPage(page) {
+    const allowed = {
+        home: true,
+        requests: true,
+        apply: profileRole(),
+        history: profileRole(),
+        employees: currentUser?.role === "ADMIN",
+    };
+    if (!allowed[page]) page = "home";
+    activePage = page;
+    document.querySelectorAll(".module-page").forEach(element => {
+        const pageMatches = element.dataset.page === page;
+        const profileOnly = ["balanceCard", "employeeTracker"].includes(element.id);
+        const adminOnly = element.id === "adminOverview";
+        const available = (!profileOnly || profileRole()) && (!adminOnly || currentUser?.role === "ADMIN");
+        element.hidden = !pageMatches || !available;
+    });
+    document.querySelectorAll(".sidebar-link[data-page]").forEach(link => {
+        link.classList.toggle("active", link.dataset.page === page);
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
 async function loadDashboard() {
     currentUser = await api("/auth/me");
 
@@ -326,33 +367,48 @@ async function loadDashboard() {
         "Welcome, " + (currentUser.employee?.name || currentUser.email);
 
     $("roleText").textContent = currentUser.role;
+    $("trackerType").textContent = "Your leave balances";
 
-    const employee = currentUser.role === "EMPLOYEE";
+    const employee = profileRole();
     const admin = currentUser.role === "ADMIN";
-    const manager = currentUser.role === "MANAGER";
 
+    document.querySelectorAll(".sidebar-link[data-roles]").forEach(link => {
+        link.hidden = !link.dataset.roles.split(",").includes(currentUser.role) ||
+            (link.dataset.page === "apply" && !employee) ||
+            (link.dataset.page === "history" && !employee);
+    });
     $("balanceCard").hidden = !employee;
     $("employeeTracker").hidden = !employee;
-    $("employeeHistory").hidden = !employee;
-    $("applySection").hidden = !employee;
     $("employeeSection").hidden = !admin;
-    $("employeesSection").hidden = !(admin || manager);
-    $("employeeSelectLabel").hidden = employee;
-    $("employeeSelect").hidden = employee;
+    $("employeesSection").hidden = !admin;
 
     if (employee) {
         const balances = currentUser.employee;
         const totalBalance = Number(balances.casual_balance) + Number(balances.sick_balance) + Number(balances.comp_off_balance);
         $("balance").textContent = totalBalance + " days";
-        $("trackerBalance").textContent = `${totalBalance} days (${balances.casual_balance} casual / ${balances.sick_balance} sick)`;
+        $("trackerBalance").textContent = `${balances.casual_balance} casual / ${balances.sick_balance} sick / ${balances.comp_off_balance} comp-off`;
+        const months = completedMonthsForUI(balances.joining_date);
+        $("probationNotice").textContent = months < 6
+            ? `Probation: ${6 - months} completed month(s) remaining. Use unpaid leave if needed.`
+            : "Confirmed employee · monthly leave accrual is active.";
     }
 
     await loadLeaves();
+    if (employee) await loadHistory();
 
-    if (admin || manager) await loadEmployees();
+    if (admin) await loadEmployees();
+    showPage(activePage);
 }
 
-async function loadLeaves() {
+function completedMonthsForUI(joiningDate) {
+    const start = new Date(joiningDate + "T00:00:00");
+    const now = new Date();
+    let months = (now.getFullYear() - start.getFullYear()) * 12 + now.getMonth() - start.getMonth();
+    if (now.getDate() < start.getDate()) months -= 1;
+    return Math.max(0, months);
+}
+
+async function loadLeavesLegacy() {
     const status = $("statusFilter").value;
     const query = status ? "?status=" + encodeURIComponent(status) : "";
 
@@ -426,6 +482,105 @@ async function loadLeaves() {
     });
 }
 
+async function loadLeaves() {
+    const status = $("statusFilter").value;
+    const leaves = await api("/leaves" + (status ? "?status=" + encodeURIComponent(status) : ""));
+    const body = $("leaveList");
+    const canReview = ["ADMIN", "MANAGER"].includes(currentUser.role);
+    if (currentUser.role === "ADMIN") {
+        $("adminPendingCount").textContent = leaves.filter(leave => leave.status === "PENDING").length;
+    }
+    $("requestActionHeading").hidden = !canReview;
+    body.replaceChildren();
+
+    if (!leaves.length) {
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
+        cell.colSpan = canReview ? 7 : 6;
+        cell.className = "empty-cell";
+        cell.textContent = "No leave requests found.";
+        row.append(cell);
+        body.append(row);
+        return;
+    }
+
+    leaves.forEach(leave => {
+        const row = document.createElement("tr");
+        const values = [
+            leave.employee_name || `Employee #${leave.employee_id}`,
+            leave.leave_type.replace("_", " "),
+            `${leave.from_date} – ${leave.to_date}`,
+            `${leave.duration} day(s)`,
+            leave.reason,
+        ];
+        values.forEach(value => {
+            const cell = document.createElement("td");
+            cell.textContent = value;
+            row.append(cell);
+        });
+        const statusCell = document.createElement("td");
+        const badge = document.createElement("span");
+        badge.className = `status-badge ${leave.status}`;
+        badge.textContent = leave.status;
+        statusCell.append(badge);
+        row.append(statusCell);
+
+        if (canReview) {
+            const actionCell = document.createElement("td");
+            const isOwnManagerRequest = currentUser.role === "MANAGER" && leave.employee_id === currentUser.employee?.id;
+            if (leave.status === "PENDING" && !isOwnManagerRequest) {
+                for (const [label, action, className] of [["Approve", "approve", "approve-action"], ["Reject", "reject", "reject-action"]]) {
+                    const button = document.createElement("button");
+                    button.className = `table-action ${className}`;
+                    button.textContent = label;
+                    button.onclick = () => processLeave(leave.id, action);
+                    actionCell.append(button);
+                }
+            } else {
+                actionCell.textContent = "—";
+            }
+            row.append(actionCell);
+        }
+        body.append(row);
+    });
+}
+
+async function loadHistory() {
+    if (!profileRole()) return;
+    const query = currentUser.role === "MANAGER" ? "?mine=true" : "";
+    const leaves = await api("/leaves" + query);
+    const body = $("historyList");
+    body.replaceChildren();
+    if (!leaves.length) {
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
+        cell.colSpan = 5;
+        cell.className = "empty-cell";
+        cell.textContent = "No leave history yet.";
+        row.append(cell);
+        body.append(row);
+    }
+    leaves.forEach(leave => {
+        const row = document.createElement("tr");
+        [leave.leave_type.replace("_", " "), `${leave.from_date} – ${leave.to_date}`, `${leave.duration} day(s)`, leave.created_at ? new Date(leave.created_at).toLocaleDateString() : "—"].forEach(value => {
+            const cell = document.createElement("td");
+            cell.textContent = value;
+            row.append(cell);
+        });
+        const statusCell = document.createElement("td");
+        const badge = document.createElement("span");
+        badge.className = `status-badge ${leave.status}`;
+        badge.textContent = leave.status;
+        statusCell.append(badge);
+        row.append(statusCell);
+        body.append(row);
+    });
+    const used = leaves.filter(leave => leave.status === "APPROVED").reduce((sum, leave) => sum + Number(leave.duration), 0);
+    $("trackerDay").textContent = used;
+    $("trackerTotal").textContent = used === 1 ? "day used" : "days used";
+    $("trackerDates").textContent = `${leaves.length} leave request${leaves.length === 1 ? "" : "s"} on record`;
+}
+
 async function processLeave(id, action) {
     try {
         await api(`/leaves/${id}/${action}`, "PUT");
@@ -438,33 +593,29 @@ async function processLeave(id, action) {
 }
 
 async function loadEmployees() {
-    if (!["ADMIN", "MANAGER"].includes(currentUser.role)) return;
-
+    if (currentUser.role !== "ADMIN") return;
     const employees = await api("/employees");
-    const employeeSelect = $("employeeSelect");
-    employeeSelect.innerHTML = '<option value="">Select employee</option>';
+    const body = $("employeeList");
+    body.replaceChildren();
+    const compOffSelect = $("compOffEmployee");
+    compOffSelect.replaceChildren();
     employees.forEach(employee => {
         const option = document.createElement("option");
         option.value = employee.id;
-        option.textContent = `${employee.name} — ${employee.department}`;
-        employeeSelect.append(option);
+        option.textContent = `${employee.name} (${employee.department})`;
+        compOffSelect.append(option);
+
+        const row = document.createElement("tr");
+        const monthCount = completedMonthsForUI(employee.joining_date);
+        const probation = monthCount < 6 ? `Probation (${6 - monthCount} month(s) left)` : "Confirmed";
+        [employee.name, employee.email, employee.department, `${employee.role} · ${probation}`, employee.joining_date, employee.casual_balance, employee.sick_balance, employee.comp_off_balance].forEach(value => {
+            const cell = document.createElement("td");
+            cell.textContent = value;
+            row.append(cell);
+        });
+        body.append(row);
     });
-    const container = $("employeeList");
-
-    container.replaceChildren();
-
-    employees.forEach(employee => {
-        const card = document.createElement("div");
-        card.className = "employee-card";
-
-        const details = document.createElement("p");
-        details.textContent =
-            `${employee.name} | ${employee.email} | ` +
-            `${employee.department} | Casual: ${employee.casual_balance} | Sick: ${employee.sick_balance} | Comp off: ${employee.comp_off_balance}`;
-
-        card.append(details);
-        container.append(card);
-    });
+    $("adminEmployeeCount").textContent = employees.length;
 }
 
 $("loginForm").addEventListener("submit", async event => {
@@ -489,11 +640,7 @@ $("leaveForm").addEventListener("submit", async event => {
     event.preventDefault();
 
     try {
-        if (currentUser.role !== "EMPLOYEE" && !$("employeeSelect").value) {
-            throw new Error("Select an employee before submitting the request.");
-        }
         await api("/leaves", "POST", {
-            ...(currentUser.role === "EMPLOYEE" ? {} : { employee_id: Number($("employeeSelect").value) }),
             leave_type: $("leaveType").value,
             duration: Number($("leaveDuration").value),
             from_date: $("fromDate").value,
@@ -502,10 +649,11 @@ $("leaveForm").addEventListener("submit", async event => {
         });
 
         $("leaveForm").reset();
-        showMessage("requestMessage", "Leave request submitted!", true);
+        showMessage("applyMessage", "Leave request submitted!", true);
         await loadLeaves();
+        await loadHistory();
     } catch (error) {
-        showMessage("requestMessage", error.message);
+        showMessage("applyMessage", error.message);
     }
 });
 
@@ -518,14 +666,15 @@ $("employeeForm").addEventListener("submit", async event => {
             email: $("employeeEmail").value.trim(),
             department: $("employeeDepartment").value.trim(),
             password: $("employeePassword").value,
-            joining_date: $("employeeJoiningDate").value
+            joining_date: $("employeeJoiningDate").value,
+            role: $("employeeRole").value
         });
 
         $("employeeForm").reset();
-        showMessage("requestMessage", "Employee added successfully!", true);
+        showMessage("employeeMessage", "Employee added successfully!", true);
         await loadEmployees();
     } catch (error) {
-        showMessage("requestMessage", error.message);
+        showMessage("employeeMessage", error.message);
     }
 });
 
@@ -547,29 +696,31 @@ if (token) {
     document.querySelector("header").style.display = "none";
 }
 
-document.querySelectorAll(".sidebar-link[data-section]").forEach(link => {
+document.querySelectorAll(".sidebar-link[data-page]").forEach(link => {
     link.addEventListener("click", event => {
         event.preventDefault();
-        const targetId = link.dataset.section;
-        if (targetId === "applySection" && currentUser?.role !== "EMPLOYEE") {
-            showMessage("requestMessage", "Only employees can apply for leave.");
-            return;
-        }
-        if (targetId === "employeesSection" && !["ADMIN", "MANAGER"].includes(currentUser?.role)) {
-            showMessage("requestMessage", "You do not have access to employee management.");
-            return;
-        }
-        $(targetId).hidden = false;
-        $(targetId).scrollIntoView({ behavior: "smooth", block: "start" });
-        document.querySelectorAll(".sidebar-link").forEach(item => item.classList.remove("active"));
-        link.classList.add("active");
+        showPage(link.dataset.page);
     });
 });
 
 $("sidebarLogout").addEventListener("click", logout);
+document.querySelectorAll("[data-open-page]").forEach(button => {
+    button.addEventListener("click", () => showPage(button.dataset.openPage));
+});
 $("trackerApplyButton").addEventListener("click", () => {
-    $("applySection").hidden = false;
-    $("applySection").scrollIntoView({ behavior: "smooth" });
+    showPage("apply");
+});
+$("grantCompOffButton").addEventListener("click", () => { $("compOffForm").hidden = false; });
+$("cancelCompOff").addEventListener("click", () => { $("compOffForm").hidden = true; });
+$("compOffForm").addEventListener("submit", async event => {
+    event.preventDefault();
+    try {
+        await api(`/employees/${$("compOffEmployee").value}/comp-off`, "POST", { amount: Number($("compOffAmount").value) });
+        showMessage("compOffMessage", "Comp-off balance updated.", true);
+        await loadEmployees();
+    } catch (error) {
+        showMessage("compOffMessage", error.message);
+    }
 });
 </script>
 
