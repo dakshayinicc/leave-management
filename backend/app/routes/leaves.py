@@ -81,7 +81,9 @@ def approve_leave(leave_id):
 
     except LookupError as error:
         return jsonify({"error": str(error)}), 404
-    except (ValueError, RuntimeError) as error:
+    except ValueError as error:
+        return jsonify({"error": str(error)}), 400
+    except RuntimeError as error:
         return jsonify({"error": str(error)}), 409
 
 
