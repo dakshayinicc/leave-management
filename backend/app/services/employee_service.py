@@ -27,8 +27,11 @@ def create_employee(data):
     if get_user_by_email(email):
         raise ValueError("An account with this email already exists.")
 
-    if isinstance(leave_balance, bool) or not isinstance(leave_balance, int) or leave_balance < 0:
-        raise ValueError("Leave balance must be a non-negative integer.")
+    if (isinstance(leave_balance, bool) or
+            not isinstance(leave_balance, int) or
+            leave_balance < 0 or
+            leave_balance > 365):
+        raise ValueError("Leave balance must be an integer between 0 and 365.")
 
     employee = Employee(
         name=name,

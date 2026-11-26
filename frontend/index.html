@@ -224,7 +224,7 @@ button {
 
             <label>Leave Balance</label>
             <input type="number" id="employeeBalance"
-                   min="0" value="12" required>
+                   min="0" max="365" value="12" required>
 
             <button type="submit">Add Employee</button>
         </form>
@@ -524,6 +524,12 @@ $("statusFilter").addEventListener("change", () => {
     loadLeaves().catch(error =>
         showMessage("requestMessage", error.message)
     );
+});
+
+$("employeeBalance").addEventListener("input", event => {
+    const field = event.target;
+    if (field.value.length > 3) field.value = field.value.slice(0, 3);
+    if (Number(field.value) > 365) field.value = 365;
 });
 
 $("logoutButton").addEventListener("click", logout);
