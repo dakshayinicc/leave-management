@@ -42,6 +42,12 @@ def ensure_leave_schema():
                 "CASE WHEN casual_balance = 0 THEN COALESCE(leave_balance, 0) "
                 "ELSE casual_balance END"
             ))
+            # Existing databases keep the legacy NOT NULL column after the
+            # typed-balance migration. Give it a default so inserts from the
+            # new ORM model (which no longer writes leave_balance) succeed.
+            connection.execute(text(
+                "ALTER TABLE employee ALTER COLUMN leave_balance SET DEFAULT 0"
+            ))
 
         leave_additions = {
             "leave_type": "VARCHAR(20) NOT NULL DEFAULT 'CASUAL'",
