@@ -1,0 +1,57 @@
+{
+  "info": {
+    "name": "Leave Management API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000" },
+    { "key": "token", "value": "" },
+    { "key": "employeeId", "value": "1" },
+    { "key": "leaveId", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "Login",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"a-password-of-at-least-12-chars\"\n}" },
+        "url": "{{baseUrl}}/auth/login"
+      }
+    },
+    {
+      "name": "Create employee",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"Test Employee\",\n  \"email\": \"employee@example.com\",\n  \"department\": \"IT\",\n  \"password\": \"EmployeePassword123\",\n  \"leave_balance\": 12\n}" },
+        "url": "{{baseUrl}}/employees"
+      }
+    },
+    {
+      "name": "List employees",
+      "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/employees" }
+    },
+    {
+      "name": "Apply leave",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"employee_id\": {{employeeId}},\n  \"from_date\": \"2026-06-18\",\n  \"to_date\": \"2026-06-20\",\n  \"reason\": \"Personal work\"\n}" },
+        "url": "{{baseUrl}}/leaves"
+      }
+    },
+    {
+      "name": "List leaves",
+      "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/leaves?status=PENDING" }
+    },
+    {
+      "name": "Approve leave",
+      "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/leaves/{{leaveId}}/approve" }
+    },
+    {
+      "name": "Reject leave",
+      "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/leaves/{{leaveId}}/reject" }
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+services:
+  db:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: leave_management
+      MYSQL_USER: leave_user
+      MYSQL_PASSWORD: leave_password
+      MYSQL_ROOT_PASSWORD: root_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot_password"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  backend:
+    build: ./backend
+    environment:
+      SECRET_KEY: docker-secret-key
+      JWT_SECRET_KEY: docker-jwt-secret-key
+      DB_USER: leave_user
+      DB_PASSWORD: leave_password
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: leave_management
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "5000:5000"
+
+  frontend:
+    build: ./frontend
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+
+volumes:
+  mysql_data:
