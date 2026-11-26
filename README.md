@@ -101,11 +101,20 @@ The test suite covers invalid dates, insufficient balance, and overlapping appro
 ### Login screen
 ![Login screen](docs/screenshots/login.png)
 
+### Admin dashboard
+![Admin dashboard](docs/screenshots/admin-dashboard.png)
+
 ### Employee dashboard
 ![Employee dashboard](docs/screenshots/employee-dashboard.png)
 
 ### Admin leave requests
 ![Admin leave requests](docs/screenshots/admin-leave-requests.png)
+
+### Employee leave requests
+![Employee leave requests](docs/screenshots/employee-leave-requests.png)
+
+### Admin employee directory and onboarding
+![Admin employee directory and onboarding](docs/screenshots/admin-employees.png)
 
 ### Docker containers
 ![Docker containers](docs/screenshots/docker-running.png)
