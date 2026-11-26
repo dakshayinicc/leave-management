@@ -1,0 +1,568 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leave Management System</title>
+<link rel="stylesheet" href="/style.css">
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f3f5f9;
+    color: #263247;
+}
+
+header {
+    background: #183b68;
+    color: white;
+    padding: 24px 8%;
+}
+
+header h1 { margin: 0 0 8px; }
+
+main {
+    max-width: 1000px;
+    margin: 30px auto;
+    padding: 0 18px;
+}
+
+.panel {
+    background: white;
+    padding: 24px;
+    margin-bottom: 22px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px #0000000d;
+}
+
+#loginSection {
+    max-width: 450px;
+    margin: 45px auto;
+}
+
+label {
+    display: block;
+    margin: 14px 0 6px;
+    font-weight: 600;
+}
+
+input, textarea, select {
+    width: 100%;
+    padding: 11px;
+    border: 1px solid #ccd3df;
+    border-radius: 6px;
+    font-size: 15px;
+}
+
+textarea { min-height: 90px; }
+
+button {
+    background: #2164ad;
+    color: white;
+    border: 0;
+    border-radius: 6px;
+    padding: 11px 18px;
+    cursor: pointer;
+    margin-top: 16px;
+}
+
+.secondary { background: #596579; }
+.danger { background: #c43b43; }
+
+.welcome, .section-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+}
+
+.balance-card {
+    background: #e5f2ff;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 22px;
+}
+
+.balance-card h2 {
+    color: #1761a6;
+    font-size: 32px;
+}
+
+.leave-card, .employee-card {
+    border: 1px solid #e0e5ed;
+    padding: 16px;
+    border-radius: 8px;
+    margin-top: 12px;
+}
+
+.status { font-weight: bold; }
+.PENDING { color: #b77912; }
+.APPROVED { color: #18834b; }
+.REJECTED { color: #c43b43; }
+
+.message { color: #b42318; }
+.success { color: #18834b; }
+
+.actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+[hidden] { display: none !important; }
+
+@media(max-width:600px) {
+    .welcome, .section-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+    .panel { padding: 17px; }
+}
+</style>
+<link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+
+<aside class="app-sidebar" aria-label="Main navigation">
+    <div class="sidebar-brand"><span class="sidebar-logo">L</span><span>Leave<span>Flow</span></span></div>
+    <div class="sidebar-caption">WORKSPACE</div>
+    <nav class="sidebar-nav">
+        <a href="#dashboard" class="sidebar-link active" data-section="dashboard"><span>▦</span> Dashboard</a>
+        <a href="#leaveList" class="sidebar-link" data-section="requestsPanel"><span>▤</span> Leave requests</a>
+        <a href="#applySection" class="sidebar-link" data-section="applySection"><span>＋</span> Apply leave</a>
+        <a href="#employeesSection" class="sidebar-link" data-section="employeesSection"><span>♙</span> Employees</a>
+    </nav>
+    <div class="sidebar-caption">ACCOUNT</div>
+    <nav class="sidebar-nav">
+        <a href="#" class="sidebar-link"><span>⚙</span> Settings</a>
+        <a href="#" class="sidebar-link"><span>?</span> Help center</a>
+    </nav>
+    <div class="sidebar-bottom"><div class="sidebar-tip"><strong>Need assistance?</strong><small>We’re here to help.</small></div><button id="sidebarLogout" class="sidebar-logout">↪ <span>Log out</span></button></div>
+</aside>
+
+<header>
+    <h1>Leave Management System</h1>
+    <p>Manage employee leave applications</p>
+</header>
+
+<main>
+
+<section id="loginSection" class="panel">
+    <h2>Login</h2>
+    <form id="loginForm">
+        <label>Email</label>
+        <input type="email" id="email" required>
+
+        <label>Password</label>
+        <input type="password" id="password" required>
+
+        <button type="submit">Login</button>
+        <p id="loginMessage" class="message"></p>
+    </form>
+</section>
+
+<section id="dashboard" hidden>
+
+    <div class="welcome">
+        <div>
+            <h2 id="welcomeText">Welcome</h2>
+            <p id="roleText"></p>
+        </div>
+        <button id="logoutButton" class="secondary">Logout</button>
+    </div>
+
+    <div id="balanceCard" class="balance-card" hidden>
+        <p>Available Leave Balance</p>
+        <h2 id="balance">0 days</h2>
+    </div>
+
+    <section id="employeeTracker" class="employee-tracker panel" hidden>
+        <div class="tracker-heading"><div><h2>Leave Tracker</h2><p id="trackerType">Annual Leave <span class="tracker-active">Active</span></p><small id="trackerDates">Your current leave overview</small></div><span class="tracker-menu">•••</span></div>
+        <div class="tracker-ring"><div><strong id="trackerDay">0</strong><span id="trackerTotal">days used</span></div></div>
+        <div class="tracker-return">Available balance: <strong id="trackerBalance">0 days</strong></div>
+        <button class="tracker-button" id="trackerApplyButton">Apply for leave</button>
+    </section>
+
+    <section id="applySection" class="panel" hidden>
+        <h2>Apply for Leave</h2>
+        <form id="leaveForm">
+            <label id="employeeSelectLabel" for="employeeSelect">Employee</label>
+            <select id="employeeSelect"><option value="">Select employee</option></select>
+            <label>From Date</label>
+            <input type="date" id="fromDate" required>
+
+            <label>To Date</label>
+            <input type="date" id="toDate" required>
+
+            <label>Reason</label>
+            <textarea id="reason" maxlength="500" required></textarea>
+
+            <button type="submit">Submit Leave Request</button>
+        </form>
+    </section>
+
+    <section id="employeeSection" class="panel" hidden>
+        <h2>Add Employee</h2>
+        <form id="employeeForm">
+            <label>Employee Name</label>
+            <input id="employeeName" required>
+
+            <label>Email</label>
+            <input type="email" id="employeeEmail" required>
+
+            <label>Department</label>
+            <input id="employeeDepartment" required>
+
+            <label>Temporary Password (minimum 12 characters)</label>
+            <input type="password" id="employeePassword"
+                   minlength="12" required>
+
+            <label>Leave Balance</label>
+            <input type="number" id="employeeBalance"
+                   min="0" value="12" required>
+
+            <button type="submit">Add Employee</button>
+        </form>
+    </section>
+
+    <section id="requestsPanel" class="panel">
+        <div class="section-heading">
+            <h2>Leave Requests</h2>
+            <select id="statusFilter">
+                <option value="">All Statuses</option>
+                <option value="PENDING">Pending</option>
+                <option value="APPROVED">Approved</option>
+                <option value="REJECTED">Rejected</option>
+            </select>
+        </div>
+
+        <p id="requestMessage" class="message"></p>
+        <div id="leaveList"></div>
+    </section>
+
+    <section id="employeeHistory" class="panel employee-history" hidden>
+        <div class="section-heading"><h2>Leave History</h2><div class="history-filters"><select><option>Year</option><option>2026</option></select><select><option>Type</option><option>All types</option></select><select><option>Status</option><option>All statuses</option></select></div></div>
+        <div class="history-table"><div class="history-row history-header"><span>TYPE</span><span>DATE RANGE</span><span>DAYS</span><span>SUBMITTED ON</span><span>STATUS</span><span>ACTION</span></div><div id="historyList"></div></div>
+    </section>
+
+    <section id="employeesSection" class="panel" hidden>
+        <h2>Employees</h2>
+        <div id="employeeList"></div>
+    </section>
+
+</section>
+</main>
+
+<script>
+let token = sessionStorage.getItem("access_token");
+let currentUser = null;
+
+const $ = id => document.getElementById(id);
+
+async function api(path, method = "GET", body = null) {
+    const headers = {};
+
+    if (token) headers.Authorization = `Bearer ${token}`;
+    if (body !== null) headers["Content-Type"] = "application/json";
+
+    const response = await fetch(path, {
+        method,
+        headers,
+        body: body === null ? null : JSON.stringify(body)
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if (response.status === 401) {
+        logout();
+        throw new Error("Session expired. Please login again.");
+    }
+
+    if (!response.ok) {
+        throw new Error(data.error || data.message || "Request failed.");
+    }
+
+    return data;
+}
+
+function showMessage(id, message, success = false) {
+    $(id).textContent = message;
+    $(id).className = success ? "message success" : "message";
+}
+
+function logout() {
+    sessionStorage.removeItem("access_token");
+    token = null;
+    currentUser = null;
+
+    $("dashboard").hidden = true;
+    $("loginSection").hidden = false;
+    document.querySelector(".app-sidebar").style.display = "none";
+    document.querySelector("header").style.display = "none";
+}
+
+async function loadDashboard() {
+    currentUser = await api("/auth/me");
+
+    $("loginSection").hidden = true;
+    $("dashboard").hidden = false;
+    $("dashboard").classList.toggle("employee-mode", currentUser.role === "EMPLOYEE");
+    document.querySelector(".app-sidebar").style.display = "flex";
+    document.querySelector("header").style.display = "flex";
+
+    $("welcomeText").textContent =
+        "Welcome, " + (currentUser.employee?.name || currentUser.email);
+
+    $("roleText").textContent = currentUser.role;
+
+    const employee = currentUser.role === "EMPLOYEE";
+    const admin = currentUser.role === "ADMIN";
+    const manager = currentUser.role === "MANAGER";
+
+    $("balanceCard").hidden = !employee;
+    $("employeeTracker").hidden = !employee;
+    $("employeeHistory").hidden = !employee;
+    $("applySection").hidden = !employee;
+    $("employeeSection").hidden = !admin;
+    $("employeesSection").hidden = !(admin || manager);
+    $("employeeSelectLabel").hidden = employee;
+    $("employeeSelect").hidden = employee;
+
+    if (employee) {
+        $("balance").textContent =
+            currentUser.employee.leave_balance + " days";
+        $("trackerBalance").textContent = currentUser.employee.leave_balance + " days";
+    }
+
+    await loadLeaves();
+
+    if (admin || manager) await loadEmployees();
+}
+
+async function loadLeaves() {
+    const status = $("statusFilter").value;
+    const query = status ? "?status=" + encodeURIComponent(status) : "";
+
+    const leaves = await api("/leaves" + query);
+    const container = $("leaveList");
+
+    container.replaceChildren();
+
+    if (!leaves.length) {
+        container.textContent = "No leave requests found.";
+        if (currentUser?.role === "EMPLOYEE") $("historyList").innerHTML = "<div class='history-empty'>No leave history yet.</div>";
+        return;
+    }
+
+    if (currentUser?.role === "EMPLOYEE") {
+        const history = $("historyList");
+        history.replaceChildren();
+        leaves.forEach(leave => {
+            const start = new Date(leave.from_date);
+            const end = new Date(leave.to_date);
+            const days = Math.max(1, Math.round((end - start) / 86400000) + 1);
+            const row = document.createElement("div");
+            row.className = "history-row";
+            row.innerHTML = `<span><strong>Annual Leave</strong></span><span>${leave.from_date} – ${leave.to_date}</span><span>${days}</span><span>${leave.created_at || "Today"}</span><span class="status-badge ${leave.status}">${leave.status}</span><span class="history-view">View</span>`;
+            history.append(row);
+        });
+        const used = leaves.filter(x => x.status === "APPROVED").reduce((sum, leave) => {
+            const days = Math.max(1, Math.round((new Date(leave.to_date) - new Date(leave.from_date)) / 86400000) + 1);
+            return sum + days;
+        }, 0);
+        $("trackerDay").textContent = used;
+        $("trackerTotal").textContent = used === 1 ? "day used" : "days used";
+        $("trackerDates").textContent = leaves.length + " leave request" + (leaves.length === 1 ? "" : "s") + " this year";
+    }
+
+    leaves.forEach(leave => {
+        const card = document.createElement("div");
+        card.className = "leave-card";
+
+        const details = document.createElement("p");
+        details.textContent =
+            `Employee ID: ${leave.employee_id} | ` +
+            `${leave.from_date} to ${leave.to_date} | ` +
+            `Reason: ${leave.reason}`;
+
+        const statusText = document.createElement("p");
+        statusText.className = "status " + leave.status;
+        statusText.textContent = "Status: " + leave.status;
+
+        card.append(details, statusText);
+
+        if (leave.status === "PENDING" &&
+            ["ADMIN", "MANAGER"].includes(currentUser.role)) {
+
+            const actions = document.createElement("div");
+            actions.className = "actions";
+
+            const approve = document.createElement("button");
+            approve.textContent = "Approve";
+            approve.onclick = () => processLeave(leave.id, "approve");
+
+            const reject = document.createElement("button");
+            reject.textContent = "Reject";
+            reject.className = "danger";
+            reject.onclick = () => processLeave(leave.id, "reject");
+
+            actions.append(approve, reject);
+            card.append(actions);
+        }
+
+        container.append(card);
+    });
+}
+
+async function processLeave(id, action) {
+    try {
+        await api(`/leaves/${id}/${action}`, "PUT");
+        showMessage("requestMessage", "Leave " + action + "d successfully.", true);
+        await loadLeaves();
+        await loadDashboard();
+    } catch (error) {
+        showMessage("requestMessage", error.message);
+    }
+}
+
+async function loadEmployees() {
+    if (!["ADMIN", "MANAGER"].includes(currentUser.role)) return;
+
+    const employees = await api("/employees");
+    const employeeSelect = $("employeeSelect");
+    employeeSelect.innerHTML = '<option value="">Select employee</option>';
+    employees.forEach(employee => {
+        const option = document.createElement("option");
+        option.value = employee.id;
+        option.textContent = `${employee.name} — ${employee.department}`;
+        employeeSelect.append(option);
+    });
+    const container = $("employeeList");
+
+    container.replaceChildren();
+
+    employees.forEach(employee => {
+        const card = document.createElement("div");
+        card.className = "employee-card";
+
+        const details = document.createElement("p");
+        details.textContent =
+            `${employee.name} | ${employee.email} | ` +
+            `${employee.department} | Balance: ${employee.leave_balance} days`;
+
+        card.append(details);
+        container.append(card);
+    });
+}
+
+$("loginForm").addEventListener("submit", async event => {
+    event.preventDefault();
+
+    try {
+        const result = await api("/auth/login", "POST", {
+            email: $("email").value.trim(),
+            password: $("password").value
+        });
+
+        token = result.access_token;
+        sessionStorage.setItem("access_token", token);
+
+        await loadDashboard();
+    } catch (error) {
+        showMessage("loginMessage", error.message);
+    }
+});
+
+$("leaveForm").addEventListener("submit", async event => {
+    event.preventDefault();
+
+    try {
+        if (currentUser.role !== "EMPLOYEE" && !$("employeeSelect").value) {
+            throw new Error("Select an employee before submitting the request.");
+        }
+        await api("/leaves", "POST", {
+            ...(currentUser.role === "EMPLOYEE" ? {} : { employee_id: Number($("employeeSelect").value) }),
+            from_date: $("fromDate").value,
+            to_date: $("toDate").value,
+            reason: $("reason").value.trim()
+        });
+
+        $("leaveForm").reset();
+        showMessage("requestMessage", "Leave request submitted!", true);
+        await loadLeaves();
+    } catch (error) {
+        showMessage("requestMessage", error.message);
+    }
+});
+
+$("employeeForm").addEventListener("submit", async event => {
+    event.preventDefault();
+
+    try {
+        await api("/employees", "POST", {
+            name: $("employeeName").value.trim(),
+            email: $("employeeEmail").value.trim(),
+            department: $("employeeDepartment").value.trim(),
+            password: $("employeePassword").value,
+            leave_balance: Number($("employeeBalance").value)
+        });
+
+        $("employeeForm").reset();
+        showMessage("requestMessage", "Employee added successfully!", true);
+        await loadEmployees();
+    } catch (error) {
+        showMessage("requestMessage", error.message);
+    }
+});
+
+$("statusFilter").addEventListener("change", () => {
+    loadLeaves().catch(error =>
+        showMessage("requestMessage", error.message)
+    );
+});
+
+$("logoutButton").addEventListener("click", logout);
+
+if (token) {
+    loadDashboard().catch(error => {
+        logout();
+        showMessage("loginMessage", error.message);
+    });
+} else {
+    document.querySelector(".app-sidebar").style.display = "none";
+    document.querySelector("header").style.display = "none";
+}
+
+document.querySelectorAll(".sidebar-link[data-section]").forEach(link => {
+    link.addEventListener("click", event => {
+        event.preventDefault();
+        const targetId = link.dataset.section;
+        if (targetId === "applySection" && currentUser?.role !== "EMPLOYEE") {
+            showMessage("requestMessage", "Only employees can apply for leave.");
+            return;
+        }
+        if (targetId === "employeesSection" && !["ADMIN", "MANAGER"].includes(currentUser?.role)) {
+            showMessage("requestMessage", "You do not have access to employee management.");
+            return;
+        }
+        $(targetId).hidden = false;
+        $(targetId).scrollIntoView({ behavior: "smooth", block: "start" });
+        document.querySelectorAll(".sidebar-link").forEach(item => item.classList.remove("active"));
+        link.classList.add("active");
+    });
+});
+
+$("sidebarLogout").addEventListener("click", logout);
+$("trackerApplyButton").addEventListener("click", () => {
+    $("applySection").hidden = false;
+    $("applySection").scrollIntoView({ behavior: "smooth" });
+});
+</script>
+
+</body>
+</html>
