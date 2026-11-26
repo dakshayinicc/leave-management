@@ -115,6 +115,3 @@ The test suite covers invalid dates, insufficient balance, and overlapping appro
 
 ### Admin employee directory and onboarding
 ![Admin employee directory and onboarding](docs/screenshots/admin-employees.png)
-
-### Docker containers
-![Docker containers](docs/screenshots/docker-running.png)
